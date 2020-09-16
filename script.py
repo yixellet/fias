@@ -3,6 +3,7 @@ import json
 import zipfile
 import psycopg2
 import xmlschema
+from pprint import pprint
 """
 with urllib.request.urlopen('http://fias.nalog.ru/WebServices/Public/GetLastDownloadFileInfo') as response:
     versions = json.loads(response.read())
@@ -32,5 +33,18 @@ conn.commit()
 conn.close()
 """
 
-schema = xmlschema.XMLSchema('/media/owgrant/second/fias/gar_delta/Schemas/AS_ADDR_OBJ_2_251_01_04_01_01.XSD')
-print(schema.attributes)
+schema = open(r'D:\\fias_gar_15092020\\Schemas\\AS_ADDR_OBJ_2_251_01_04_01_01.XSD', 'r', encoding='utf_8_sig')
+#schema = xmlschema.XMLSchema('/media/owgrant/second/fias/gar_delta/Schemas/AS_ADDR_OBJ_2_251_01_04_01_01.XSD')
+position = 0
+
+schemadict = {}
+
+schemastr = schema.read()
+
+while True:
+    x = schemastr.find('xs:', position)
+    currenttag = schemastr[x]
+
+
+print(schemastr.find('<xs:', position))
+print(schemastr[131])
