@@ -23,11 +23,14 @@ for file in gar_zip.namelist():
 """
 
 try:
-    conn = psycopg2.connect("dbname=geodata user=postgres password=07071907 host=172.17.13.6")
+    #conn = psycopg2.connect("dbname=geodata user=postgres password=07071907 host=172.17.13.6")
+    conn = psycopg2.connect("dbname=geodata user=postgres password=07071907 host=localhost")
 except psycopg2.Error as e:
     print(e)
 cursor = conn.cursor()
-cursor.execute("CREATE SCHEMA fiastest;")
+
+"""
+cursor.execute("CREATE SCHEMA IF NOT EXISTS fiastest;")
 
 conn.commit()
 
@@ -35,8 +38,10 @@ conn.commit()
 
 def parseXsd(directory):
     parsedXSD = []
-    for xsd in os.listdir(directory.replace('\\', '\\\\')):
-        schema = open(directory.replace('\\', '\\\\') + '\\\\' + xsd, 'r', encoding='utf_8_sig')
+    #for xsd in os.listdir(directory.replace('\\', '\\\\')):
+    for xsd in os.listdir(directory):
+        #schema = open(directory.replace('\\', '\\\\') + '\\\\' + xsd, 'r', encoding='utf_8_sig')
+        schema = open(directory + '/' + xsd, 'r', encoding='utf_8_sig')
         schemadict = {}
         schemastr = schema.read()
 
@@ -70,7 +75,9 @@ def parseXsd(directory):
                 
                 if openTagNameClear == 'restriction':
                     if openTagNameWithAttributes[openTagNameWithAttributes.find(' base=')+10:openTagNameWithAttributes.find('"',openTagNameWithAttributes.find(' base=')+8)] == 'string':
-                         dictionary['fields'][-1]['type'] = 'varchar'
+                         dictionary['fields'][-1]['type'] = 'character varying'
+                    elif openTagNameWithAttributes[openTagNameWithAttributes.find(' base=')+10:openTagNameWithAttributes.find('"',openTagNameWithAttributes.find(' base=')+8)] == 'integer' or openTagNameWithAttributes[openTagNameWithAttributes.find(' base=')+10:openTagNameWithAttributes.find('"',openTagNameWithAttributes.find(' base=')+8)] == 'int':
+                         dictionary['fields'][-1]['type'] = 'bigint'
                     else:
                         dictionary['fields'][-1]['type'] = openTagNameWithAttributes[openTagNameWithAttributes.find(' base=')+10:openTagNameWithAttributes.find('"',openTagNameWithAttributes.find(' base=')+8)]
 
@@ -92,29 +99,42 @@ def parseXsd(directory):
 
         string = extractContent(schemastr)
         diver(string, schemadict, xsd)
+        for field in schemadict['fields']:
+            if 'type' not in field:
+                field['type'] = 'bigint'
         parsedXSD.append(schemadict)
 
         schema.close()
     return parsedXSD
 
 
-parsedXSD = parseXsd('D:\\fias_gar_15092020\\gar_delta\\Schemas')
-
+#parsedXSD = parseXsd('D:\\fias_gar_15092020\\gar_delta\\Schemas')
+parsedXSD = parseXsd('/mnt/bad63750-d3a5-46f9-9477-a5075147cae2/fias/gar_delta/Schemas')
 def createPgTables(parsedxsd, conn, cursor):
-    for scheme in parsedXSD:
-        print(scheme['tableName'])
-        cursor.execute("CREATE TABLE '{0}';".format(scheme['tableName']))
+    for scheme in parsedxsd:
+        cursor.execute("CREATE TABLE IF NOT EXISTS fiastest.{0} ({1} bigint CONSTRAINT {0}_{1}_pk PRIMARY KEY);".format(scheme['tableName'], scheme['fields'][0]['name']))
         conn.commit()
-        for field in scheme['fields']:
-            fieldType = ''
-            if field['type'] == 'integer':
-                fieldType = 'bigint'
-            if field['type'] == 'string':
-                fieldType = 'varchar{0}'.format(field['length'])
-            if field['type'] == 'date':
-                fieldType = 'date'
-
-            cursor.execute("ALTER TABLE '{0}' ADD COLUMN '{1}' '{2}';".format(scheme['tableName'], field['name'], fieldType))
+        for field in scheme['fields'][1:]:
+            if field['type'] == 'character varying':
+                cursor.execute("ALTER TABLE fiastest.{0} ADD COLUMN \"{1}\" {2}({3});".format(scheme['tableName'], field['name'], field['type'], field['length']))
+            if field['type'] == 'date' or field['type'] == 'boolean' or field['type'] == 'bigint':
+                cursor.execute("ALTER TABLE fiastest.{0} ADD COLUMN \"{1}\" {2};".format(scheme['tableName'], field['name'], field['type']))
+            
+            
+            
         conn.commit()
 createPgTables(parsedXSD, conn, cursor)
+"""
+
+def createSchemaList(directory):
+    schemaList = []
+    for xsd in os.listdir(directory):
+        schemaList.append(xmlschema.XMLSchema(directory + '/' + xsd))
+    return schemaList
+
+schemaList = createSchemaList('/mnt/bad63750-d3a5-46f9-9477-a5075147cae2/fias/gar_delta/Schemas')
+dic = schemaList[0].to_dict('/mnt/bad63750-d3a5-46f9-9477-a5075147cae2/fias/gar_delta/AS_ROOM_TYPES_20200914_d1ec5fa2-ba37-41be-9fe5-10ef35cc1932.XML')
+
+pprint(dic)
+
 conn.close()
