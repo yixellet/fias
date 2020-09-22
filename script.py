@@ -4,6 +4,7 @@ import zipfile
 import psycopg2
 import xmlschema
 from pprint import pprint
+import re
 """
 with urllib.request.urlopen('http://fias.nalog.ru/WebServices/Public/GetLastDownloadFileInfo') as response:
     versions = json.loads(response.read())
@@ -37,14 +38,22 @@ schema = open(r'D:\\fias_gar_15092020\\Schemas\\AS_ADDR_OBJ_2_251_01_04_01_01.XS
 #schema = xmlschema.XMLSchema('/media/owgrant/second/fias/gar_delta/Schemas/AS_ADDR_OBJ_2_251_01_04_01_01.XSD')
 position = 0
 
-schemadict = {}
+
+schemadict = []
 
 schemastr = schema.read()
 
-while True:
-    x = schemastr.find('xs:', position)
-    currenttag = schemastr[x]
+def parser(string, position=131):
+    currentOpenTagIndex = string.find('<xs:', position)
+    currentOpenTagWithAttributes = string[ currentOpenTagIndex:string.find('>', position)+1 ]
+    print(string.find('>', position))
+    currentOpenTagName = currentOpenTagWithAttributes[ currentOpenTagWithAttributes.find('xs:') : currentOpenTagWithAttributes.find(re.search(r'\ |>', currentOpenTagWithAttributes).start())]
+    currentCloseTagName = '</' + currentOpenTagName
+    currentCloseTagIndex = string.find('</' + currentOpenTagName, position)
+    print(currentOpenTagName, ' ', currentOpenTagIndex)
+    print(currentCloseTagName, ' ', currentCloseTagIndex)
 
+parser(schemastr)
 
-print(schemastr.find('<xs:', position))
-print(schemastr[131])
+schema.close()
+
