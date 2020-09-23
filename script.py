@@ -5,6 +5,7 @@ import xmlschema
 from pprint import pprint
 import re
 import os
+import datetime
 
 """
 with urllib.request.urlopen('http://fias.nalog.ru/WebServices/Public/GetLastDownloadFileInfo') as response:
@@ -23,34 +24,70 @@ for file in gar_zip.namelist():
 """
 
 try:
-    #conn = psycopg2.connect("dbname=geodata user=postgres password=07071907 host=172.17.13.6")
-    conn = psycopg2.connect("dbname=geodata user=postgres password=07071907 host=localhost")
+    conn = psycopg2.connect("dbname=geodata user=postgres password=07071907 host=172.17.13.6")
+    #conn = psycopg2.connect("dbname=geodata user=postgres password=07071907 host=localhost")
 except psycopg2.Error as e:
     print(e)
 cursor = conn.cursor()
 
-"""
-cursor.execute("CREATE SCHEMA IF NOT EXISTS fiastest;")
 
-conn.commit()
+#cursor.execute("CREATE SCHEMA IF NOT EXISTS fiastest;")
+
+#conn.commit()
 
 
 
 def parseXsd(directory):
+    """
+    Парсинг XSD файлов
+
+    Принимает на вход папку с XSD файлами, разбирает их по очереди
+    и преобразует данные каждого файла в словарь вида:
+
+    {
+        'tableName': <ИМЯ ТАБЛИЦЫ>,
+        'fields': [
+            {
+                'name': <ИМЯ ПОЛЯ 1 ТАБЛИЦЫ>,
+                'type': <ТИП ПОЛЯ>,
+                'length': <ДЛИНА ПОЛЯ> (опционально)
+            },
+            {
+                'name': <ИМЯ ПОЛЯ 2 ТАБЛИЦЫ>,
+                'type': <ТИП ПОЛЯ>,
+                'length': <ДЛИНА ПОЛЯ> (опционально)
+            },
+            {
+                ...
+            }
+        ]
+    }
+    """
     parsedXSD = []
-    #for xsd in os.listdir(directory.replace('\\', '\\\\')):
-    for xsd in os.listdir(directory):
-        #schema = open(directory.replace('\\', '\\\\') + '\\\\' + xsd, 'r', encoding='utf_8_sig')
-        schema = open(directory + '/' + xsd, 'r', encoding='utf_8_sig')
+    for xsd in os.listdir(directory.replace('\\', '\\\\')):
+    #for xsd in os.listdir(directory):
+        schema = open(directory.replace('\\', '\\\\') + '\\\\' + xsd, 'r', encoding='utf_8_sig')
+        #schema = open(directory + '/' + xsd, 'r', encoding='utf_8_sig')
         schemadict = {}
         schemastr = schema.read()
 
         def extractContent(xsd):
+            """
+            Извлекает полезное содержимое из XSD файла
+
+            Отбрасывает преамбулу, убирает все переносы строк и табуляции
+            """
             string = xsd.replace('\n','').replace('\t','')
             return string[string.find('<xs:', 0):]
 
         openTags = []
         def diver(string, dictionary, filename, openTags=openTags):
+            """
+            Конвертирует XSD в словарь
+
+            Принимает конвертированный в строку XSD, словарь, в который будут добавляться данные из XSD,
+            имя xsd файла, вспомогательный массив, в который заносятся открытые теги. 
+            """
             filename = filename
             if len(string) < 2:
                 return 'Search complete'
@@ -108,9 +145,16 @@ def parseXsd(directory):
     return parsedXSD
 
 
-#parsedXSD = parseXsd('D:\\fias_gar_15092020\\gar_delta\\Schemas')
-parsedXSD = parseXsd('/mnt/bad63750-d3a5-46f9-9477-a5075147cae2/fias/gar_delta/Schemas')
+parsedXSD = parseXsd('D:\\fias_gar_15092020\\gar_delta\\Schemas')
+#parsedXSD = parseXsd('/mnt/bad63750-d3a5-46f9-9477-a5075147cae2/fias/gar_delta/Schemas')
 def createPgTables(parsedxsd, conn, cursor):
+    """
+    Создание таблиц в БД PostgreSQL
+
+    Функция принимает массив разобранных XSD файлов, которые конвертированы в словари,
+    объект соединения с БД и объект курсора.
+    Создает из каждого XSD отдельную таблицу.
+    """
     for scheme in parsedxsd:
         cursor.execute("CREATE TABLE IF NOT EXISTS fiastest.{0} ({1} bigint CONSTRAINT {0}_{1}_pk PRIMARY KEY);".format(scheme['tableName'], scheme['fields'][0]['name']))
         conn.commit()
@@ -123,18 +167,38 @@ def createPgTables(parsedxsd, conn, cursor):
             
             
         conn.commit()
-createPgTables(parsedXSD, conn, cursor)
-"""
+#createPgTables(parsedXSD, conn, cursor)
+
 
 def createSchemaList(directory):
-    schemaList = []
+    """
+    Создает словарь объектов всех имеющихся схем.
+
+    Принимает директорию со схемами, возвращает словарь.
+    """
+    schemaList = {}
     for xsd in os.listdir(directory):
-        schemaList.append(xmlschema.XMLSchema(directory + '/' + xsd))
+        schemaList[xsd[3:xsd.find('_2')]] = xmlschema.XMLSchema(directory + '/' + xsd)
     return schemaList
 
-schemaList = createSchemaList('/mnt/bad63750-d3a5-46f9-9477-a5075147cae2/fias/gar_delta/Schemas')
-dic = schemaList[0].to_dict('/mnt/bad63750-d3a5-46f9-9477-a5075147cae2/fias/gar_delta/AS_ROOM_TYPES_20200914_d1ec5fa2-ba37-41be-9fe5-10ef35cc1932.XML')
+#schemaList = createSchemaList('/mnt/bad63750-d3a5-46f9-9477-a5075147cae2/fias/gar_delta/Schemas')
+schemaList = createSchemaList('D:\\fias_gar_15092020\\gar_delta\\Schemas')
 
-pprint(dic)
+def fillPgTables(directory, schemaList, parsedXSD, cursor, conn):
+    for item in os.listdir(directory):
+        if item.find('.XML') != -1:
+            data = schemaList[item[3:item.find('_2')]].to_dict(directory + '\\' + item)
+            for line in data[list(data.keys())[0]]:
+                cursor.execute("INSERT INTO fiastest.{0} VALUES ()".format())
+            conn.commit()
+        if item == '30':
+            fillPgTables('D:\\fias_gar_15092020\\gar_delta\\30', schemaList, parsedXSD, cursor, conn)
 
+fillPgTables('D:\\fias_gar_15092020\\gar_delta', schemaList, parsedXSD, cursor, conn)
+"""            
+data = schemaList['HOUSE_TYPES'].to_dict('D:\\fias_gar_15092020\\gar_delta\\AS_HOUSE_TYPES_20200914_a2391565-80f5-4088-b281-b06d08fa143a.XML')
+for line in data[list(data.keys())[0]]:
+    cursor.execute("INSERT INTO fiastest.{0} VALUES ('{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}');".format('HOUSETYPES', line['@ID'], line['@NAME'], line['@SHORTNAME'], line['@DESC'], line['@UPDATEDATE'], line['@STARTDATE'], line['@ENDDATE'], line['@ISACTIVE']))
+    conn.commit()
+"""
 conn.close()
