@@ -42,20 +42,21 @@ def parseXsd(directory):
     Парсинг XSD файлов
 
     Принимает на вход папку с XSD файлами, разбирает их по очереди
-    и преобразует данные каждого файла в словарь вида:
+    и на выходе выдает словарь вида:
 
-    {
+    '<ИМЯ ФАЙЛА СХЕМЫ И СООТВЕТСТВУЮЩЕГО ЕЙ XML>': {
         'tableName': <ИМЯ ТАБЛИЦЫ>,
         'fields': [
             {
-                'name': <ИМЯ ПОЛЯ>,
-                'type': <ТИП ПОЛЯ>,
-                'length': <ДЛИНА ПОЛЯ> (опционально)
+                'name': '<ИМЯ ПОЛЯ>',
+                'type': '<ТИП ПОЛЯ>,
+                'length': '<ДЛИНА ПОЛЯ>' (опционально)
             },
             {
                 ...
             }
-        ]
+        ],
+        'object': <объект XMLschema>
     }
     """
     parsedXSD = {}
@@ -168,33 +169,22 @@ def createPgTables(parsedxsd, conn, cursor):
             
         conn.commit()
 #createPgTables(parsedXSD, conn, cursor)
-pprint(parsedXSD)
 
-def createSchemaList(directory):
-    """
-    Создает словарь объектов всех имеющихся схем.
-
-    Принимает директорию со схемами, возвращает словарь.
-    """
-    schemaList = {}
-    for xsd in os.listdir(directory):
-        schemaList[xsd[3:xsd.find('_2')]] = xmlschema.XMLSchema(directory + '/' + xsd)
-    return schemaList
-
-#schemaList = createSchemaList('/mnt/bad63750-d3a5-46f9-9477-a5075147cae2/fias/gar_delta/Schemas')
-schemaList = createSchemaList('D:\\fias_gar_15092020\\gar_delta\\Schemas')
-
-def fillPgTables(directory, schemaList, parsedXSD, cursor, conn):
+def fillPgTables(directory, parsedXSD, cursor, conn):
     for item in os.listdir(directory):
         if item.find('.XML') != -1:
-            data = schemaList[item[3:item.find('_2')]].to_dict(directory + '\\' + item)
-            for line in data[list(data.keys())[0]]:
-                cursor.execute("INSERT INTO fiastest.{0} VALUES ()".format())
-            conn.commit()
+            data = parsedXSD[item[3:item.find('_2')]]['object'].to_dict(directory + '\\' + item)
+            if data != None:
+                for line in data[list(data.keys())[0]]:
+                    values = ''
+                    for key in line:
+                        values = values + '\'' + str(line[key]) + '\' '
+                    print("INSERT INTO fiastest.{0} VALUES ({1})".format(parsedXSD[item[3:item.find('_2')]]['tableName'], values[:-1]))
+                conn.commit()
         if item == '30':
-            fillPgTables('D:\\fias_gar_15092020\\gar_delta\\30', schemaList, parsedXSD, cursor, conn)
+            fillPgTables('D:\\fias_gar_15092020\\gar_delta\\30', parsedXSD, cursor, conn)
 
-#fillPgTables('D:\\fias_gar_15092020\\gar_delta', schemaList, parsedXSD, cursor, conn)
+fillPgTables('D:\\fias_gar_15092020\\gar_delta', parsedXSD, cursor, conn)
 """            
 data = schemaList['HOUSE_TYPES'].to_dict('D:\\fias_gar_15092020\\gar_delta\\AS_HOUSE_TYPES_20200914_a2391565-80f5-4088-b281-b06d08fa143a.XML')
 for line in data[list(data.keys())[0]]:
