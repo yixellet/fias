@@ -48,12 +48,7 @@ def parseXsd(directory):
         'tableName': <ИМЯ ТАБЛИЦЫ>,
         'fields': [
             {
-                'name': <ИМЯ ПОЛЯ 1 ТАБЛИЦЫ>,
-                'type': <ТИП ПОЛЯ>,
-                'length': <ДЛИНА ПОЛЯ> (опционально)
-            },
-            {
-                'name': <ИМЯ ПОЛЯ 2 ТАБЛИЦЫ>,
+                'name': <ИМЯ ПОЛЯ>,
                 'type': <ТИП ПОЛЯ>,
                 'length': <ДЛИНА ПОЛЯ> (опционально)
             },
@@ -63,12 +58,13 @@ def parseXsd(directory):
         ]
     }
     """
-    parsedXSD = []
+    parsedXSD = {}
     for xsd in os.listdir(directory.replace('\\', '\\\\')):
     #for xsd in os.listdir(directory):
         schema = open(directory.replace('\\', '\\\\') + '\\\\' + xsd, 'r', encoding='utf_8_sig')
         #schema = open(directory + '/' + xsd, 'r', encoding='utf_8_sig')
         schemadict = {}
+        schemadict['object'] = xmlschema.XMLSchema(directory + '/' + xsd)
         schemastr = schema.read()
 
         def extractContent(xsd):
@@ -139,7 +135,11 @@ def parseXsd(directory):
         for field in schemadict['fields']:
             if 'type' not in field:
                 field['type'] = 'bigint'
-        parsedXSD.append(schemadict)
+        
+        
+
+        parsedXSD[xsd[3:xsd.find('_2')]] = schemadict
+        
 
         schema.close()
     return parsedXSD
@@ -168,7 +168,7 @@ def createPgTables(parsedxsd, conn, cursor):
             
         conn.commit()
 #createPgTables(parsedXSD, conn, cursor)
-
+pprint(parsedXSD)
 
 def createSchemaList(directory):
     """
@@ -194,7 +194,7 @@ def fillPgTables(directory, schemaList, parsedXSD, cursor, conn):
         if item == '30':
             fillPgTables('D:\\fias_gar_15092020\\gar_delta\\30', schemaList, parsedXSD, cursor, conn)
 
-fillPgTables('D:\\fias_gar_15092020\\gar_delta', schemaList, parsedXSD, cursor, conn)
+#fillPgTables('D:\\fias_gar_15092020\\gar_delta', schemaList, parsedXSD, cursor, conn)
 """            
 data = schemaList['HOUSE_TYPES'].to_dict('D:\\fias_gar_15092020\\gar_delta\\AS_HOUSE_TYPES_20200914_a2391565-80f5-4088-b281-b06d08fa143a.XML')
 for line in data[list(data.keys())[0]]:
