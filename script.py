@@ -1,39 +1,35 @@
 import urllib.request
+import json
 import zipfile
 import psycopg2
 import xmlschema
 from pprint import pprint
 import re
 import os
-import datetime
-
 """
-with urllib.request.urlopen('http://fias.nalog.ru/WebServices/Public/GetLastDownloadFileInfo') as response:
+with urllib.request.urlopen(r'http://fias.nalog.ru/WebServices/Public/GetLastDownloadFileInfo') as response:
     versions = json.loads(response.read())
 GarXMLFullURL = versions["GarXMLFullURL"]
-url = urllib.request.urlretrieve(GarXMLFullURL, os.getcwd() + '\gar_xml.zip')
+url = urllib.request.urlretrieve('https://fias.nalog.ru/DownloadUpdates?file=gar_xml.zip&version=20200922', os.getcwd() + r'\gar_xml.zip')
 
-gar_zip = zipfile.ZipFile('D:\\fias_gar_15092020\\gar_delta_xml.zip')
+gar_zip = zipfile.ZipFile('/mnt/bad63750-d3a5-46f9-9477-a5075147cae2/fias/fias/gar_xml.zip')
 for file in gar_zip.namelist():
     if file.find('/') != -1:
         if file.split('/')[0] == '30' or file.split('/')[0] == 'Schemas':
-            gar_zip.extract(file, 'D:\\fias_gar_15092020\\gar_delta')
+            gar_zip.extract(file, os.getcwd())
     else:
-        gar_zip.extract(file, 'D:\\fias_gar_15092020\\gar_delta')
-
+        gar_zip.extract(file, os.getcwd())
 """
-
 try:
-    conn = psycopg2.connect("dbname=geodata user=postgres password=07071907 host=172.17.13.6")
-    #conn = psycopg2.connect("dbname=geodata user=postgres password=07071907 host=localhost")
+    #conn = psycopg2.connect("dbname=geodata user=postgres password=07071907 host=172.17.13.6")
+    conn = psycopg2.connect("dbname=geodata user=postgres password=07071907 host=localhost")
 except psycopg2.Error as e:
     print(e)
 cursor = conn.cursor()
 
+cursor.execute("CREATE SCHEMA IF NOT EXISTS fiastest;")
 
-#cursor.execute("CREATE SCHEMA IF NOT EXISTS fiastest;")
-
-#conn.commit()
+conn.commit()
 
 
 
@@ -46,24 +42,22 @@ def parseXsd(directory):
 
     '<ИМЯ ФАЙЛА СХЕМЫ И СООТВЕТСТВУЮЩЕГО ЕЙ XML>': {
         'tableName': <ИМЯ ТАБЛИЦЫ>,
-        'fields': [
-            {
+        'fields': {
+            <ИМЯ ПОЛЯ>: {
                 'name': '<ИМЯ ПОЛЯ>',
                 'type': '<ТИП ПОЛЯ>,
                 'length': '<ДЛИНА ПОЛЯ>' (опционально)
             },
-            {
-                ...
-            }
-        ],
+            ...
+        },
         'object': <объект XMLschema>
     }
     """
     parsedXSD = {}
-    for xsd in os.listdir(directory.replace('\\', '\\\\')):
-    #for xsd in os.listdir(directory):
-        schema = open(directory.replace('\\', '\\\\') + '\\\\' + xsd, 'r', encoding='utf_8_sig')
-        #schema = open(directory + '/' + xsd, 'r', encoding='utf_8_sig')
+    #for xsd in os.listdir(directory.replace('\\', '\\\\')):
+    for xsd in os.listdir(directory):
+        #schema = open(directory.replace('\\', '\\\\') + '\\\\' + xsd, 'r', encoding='utf_8_sig')
+        schema = open(directory + '/' + xsd, 'r', encoding='utf_8_sig')
         schemadict = {}
         schemadict['object'] = xmlschema.XMLSchema(directory + '/' + xsd)
         schemastr = schema.read()
@@ -134,7 +128,7 @@ def parseXsd(directory):
         string = extractContent(schemastr)
         diver(string, schemadict, xsd)
         for field in schemadict['fields']:
-            if 'type' not in field:
+            if 'type' not in field or field['type'] == 'integer' or field['type'] == 'int':
                 field['type'] = 'bigint'
         
         
@@ -146,49 +140,83 @@ def parseXsd(directory):
     return parsedXSD
 
 
-parsedXSD = parseXsd('D:\\fias_gar_15092020\\gar_delta\\Schemas')
-#parsedXSD = parseXsd('/mnt/bad63750-d3a5-46f9-9477-a5075147cae2/fias/gar_delta/Schemas')
-def createPgTables(parsedxsd, conn, cursor):
+#parsedXSD = parseXsd(os.getcwd() + '\Schemas')
+parsedXSD = parseXsd(os.getcwd() + '/Schemas')
+def createPgTables(directory, parsedXSD, conn, cursor):
     """
     Создание таблиц в БД PostgreSQL
 
-    Функция принимает массив разобранных XSD файлов, которые конвертированы в словари,
+    Функция принимает директорию с XML, массив разобранных XSD файлов, конвертированных в словари,
     объект соединения с БД и объект курсора.
-    Создает из каждого XSD отдельную таблицу.
+    Создает из каждого XSD отдельную таблицу в БД.
     """
-    for scheme in parsedxsd:
-        cursor.execute("CREATE TABLE IF NOT EXISTS fiastest.{0} ({1} bigint CONSTRAINT {0}_{1}_pk PRIMARY KEY);".format(scheme['tableName'], scheme['fields'][0]['name']))
-        conn.commit()
-        for field in scheme['fields'][1:]:
-            if field['type'] == 'character varying':
-                cursor.execute("ALTER TABLE fiastest.{0} ADD COLUMN \"{1}\" {2}({3});".format(scheme['tableName'], field['name'], field['type'], field['length']))
-            if field['type'] == 'date' or field['type'] == 'boolean' or field['type'] == 'bigint':
-                cursor.execute("ALTER TABLE fiastest.{0} ADD COLUMN \"{1}\" {2};".format(scheme['tableName'], field['name'], field['type']))
-            
-            
-            
-        conn.commit()
-#createPgTables(parsedXSD, conn, cursor)
-
-def fillPgTables(directory, parsedXSD, cursor, conn):
     for item in os.listdir(directory):
         if item.find('.XML') != -1:
-            data = parsedXSD[item[3:item.find('_2')]]['object'].to_dict(directory + '\\' + item)
-            if data != None:
-                for line in data[list(data.keys())[0]]:
-                    values = ''
-                    for key in line:
-                        values = values + '\'' + str(line[key]) + '\' '
-                    print("INSERT INTO fiastest.{0} VALUES ({1})".format(parsedXSD[item[3:item.find('_2')]]['tableName'], values[:-1]))
+            if item[3:item.find('_2')] in list(parsedXSD.keys()):
+                cursor.execute("CREATE TABLE IF NOT EXISTS fiastest.{0} ({1} bigint CONSTRAINT {0}_{1}_pk PRIMARY KEY);".format(item[3:item.find('_2')], parsedXSD[item[3:item.find('_2')]]['fields'][0]['name'].lower()))
+                
                 conn.commit()
+                for field in parsedXSD[item[3:item.find('_2')]]['fields'][1:]:
+                    if field['type'] == 'character varying':
+                        cursor.execute("ALTER TABLE fiastest.{0} ADD COLUMN \"{1}\" {2}({3});".format(item[3:item.find('_2')], field['name'].lower(), field['type'], field['length']))
+                    if field['type'] == 'date' or field['type'] == 'boolean' or field['type'] == 'bigint':
+                        cursor.execute("ALTER TABLE fiastest.{0} ADD COLUMN \"{1}\" {2};".format(item[3:item.find('_2')], field['name'].lower(), field['type']))
+                
+            if item.find('PARAMS_2') != -1:
+                cursor.execute("CREATE TABLE IF NOT EXISTS fiastest.{0} ({1} bigint CONSTRAINT {0}_{1}_pk PRIMARY KEY);".format(item[3:item.find('_2')], parsedXSD['PARAM']['fields'][0]['name'].lower()))
+                conn.commit()
+                for field in parsedXSD['PARAM']['fields'][1:]:
+                    if field['type'] == 'character varying':
+                        cursor.execute("ALTER TABLE fiastest.{0} ADD COLUMN \"{1}\" {2}({3});".format(item[3:item.find('_2')], field['name'].lower(), field['type'], field['length']))
+                    if field['type'] == 'date' or field['type'] == 'boolean' or field['type'] == 'bigint':
+                        cursor.execute("ALTER TABLE fiastest.{0} ADD COLUMN \"{1}\" {2};".format(item[3:item.find('_2')], field['name'].lower(), field['type']))
         if item == '30':
-            fillPgTables('D:\\fias_gar_15092020\\gar_delta\\30', parsedXSD, cursor, conn)
+            #createPgTables(directory + '\\' + item, parsedXSD, conn, cursor)
+            createPgTables(directory + '/' + item, parsedXSD, conn, cursor)
+            
+        conn.commit()
 
-fillPgTables('D:\\fias_gar_15092020\\gar_delta', parsedXSD, cursor, conn)
-"""            
-data = schemaList['HOUSE_TYPES'].to_dict('D:\\fias_gar_15092020\\gar_delta\\AS_HOUSE_TYPES_20200914_a2391565-80f5-4088-b281-b06d08fa143a.XML')
-for line in data[list(data.keys())[0]]:
-    cursor.execute("INSERT INTO fiastest.{0} VALUES ('{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}');".format('HOUSETYPES', line['@ID'], line['@NAME'], line['@SHORTNAME'], line['@DESC'], line['@UPDATEDATE'], line['@STARTDATE'], line['@ENDDATE'], line['@ISACTIVE']))
-    conn.commit()
-"""
+createPgTables(os.getcwd(), parsedXSD, conn, cursor)
+
+def fillPgTables(directory, parsedXSD, cursor, conn):
+    
+    for item in os.listdir(directory):
+        
+        if item.find('.XML') != -1:
+            if item[3:item.find('_2')] in list(parsedXSD.keys()):
+                #data = parsedXSD[item[3:item.find('_2')]]['object'].to_dict(directory + '\\' + item)
+                data = parsedXSD[item[3:item.find('_2')]]['object'].to_dict(directory + '/' + item)
+                
+                if data != None:
+                    for line in data[list(data.keys())[0]]:
+                        columns = ''
+                        values = ''
+                        for key in line:
+                            columns = columns + '"' + str(key[1:]).lower() + '", '
+                            values = values + '\'' + str(line[key]) + '\', '
+                        print("INSERT INTO fiastest.{0} ({1}) VALUES ({2});".format(item[3:item.find('_2')].lower(), columns[:-2], values[:-2]))
+                        cursor.execute("INSERT INTO fiastest.{0} ({1}) VALUES ({2});".format(item[3:item.find('_2')].lower(), columns[:-2], values[:-2]))
+                    conn.commit()
+                
+            if item.find('PARAMS_2') != -1:
+                #data = parsedXSD['PARAM']['object'].to_dict(directory + '\\' + item)
+                data = parsedXSD['PARAM']['object'].to_dict(directory + '/' + item)
+                if data != None:
+                    for line in data[list(data.keys())[0]]:
+                        columns = ''
+                        values = ''
+                        for key in line:
+                            columns = columns + '"' + str(key[1:]).lower() + '", '
+                            values = values + '\'' + str(line[key]) + '\', '
+                        print("INSERT INTO fiastest.{0} ({1}) VALUES ({2});".format(item[3:item.find('_2')].lower(), columns[:-2], values[:-2]))
+                        cursor.execute("INSERT INTO fiastest.{0} ({1}) VALUES ({2});".format(item[3:item.find('_2')].lower(), columns[:-2], values[:-2]))
+                    conn.commit()
+        
+        
+        if item == '30':
+            #fillPgTables(directory + '\\' + item, parsedXSD, cursor, conn)
+            fillPgTables(directory + '/' + item, parsedXSD, cursor, conn)
+
+fillPgTables(os.getcwd(), parsedXSD, cursor, conn)
+
 conn.close()
