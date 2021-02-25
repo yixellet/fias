@@ -1,0 +1,8 @@
+DB_HOST = 'localhost'
+DB_PORT = '5432'
+DB_USER = 'postgres'
+DB_PASSWORD = '07071907'
+DB_NAME = 'geodata'
+DB_SCHEMA = 'gar'
+XSD_DIRECTORY = '/home/owgrant/GAR/XSD'
+XML_DIRECTORY = '/home/owgrant/GAR/XML'
