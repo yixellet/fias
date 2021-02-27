@@ -19,28 +19,34 @@ def createPgTables(parsedXSD, conn, cursor, schemaName):
         for field in schema['fields']:
             if c.items() <= field.items():
                 fields = fields + ', PRIMARY KEY ("ID")'
+        if schema['fileName'][3:schema['fileName'].find('_2')] == 'CHANGE_HISTORY':
+            fields = fields + ', PRIMARY KEY ("CHANGEID")'
+        elif schema['fileName'][3:schema['fileName'].find('_2')] == 'OBJECT_LEVELS':
+            fields = fields + ', PRIMARY KEY ("LEVEL")'
+        elif schema['fileName'][3:schema['fileName'].find('_2')] == 'REESTR_OBJECTS':
+            fields = fields + ', PRIMARY KEY ("OBJECTID", "CHANGEID")'
         if schema['tableName'] == 'PARAMS':
             cursor.execute(
-                'CREATE TABLE IF  NOT EXISTS {0}."addr_obj_params" ({1})'.format(schemaName, fields)
+                'CREATE TABLE IF  NOT EXISTS {0}."addr_obj_params" ({1});'.format(schemaName, fields)
             )
             cursor.execute(
-                'CREATE TABLE IF  NOT EXISTS {0}."apartments_params" ({1})'.format(schemaName, fields)
+                'CREATE TABLE IF  NOT EXISTS {0}."apartments_params" ({1});'.format(schemaName, fields)
             )
             cursor.execute(
-                'CREATE TABLE IF  NOT EXISTS {0}."carplaces_params" ({1})'.format(schemaName, fields)
+                'CREATE TABLE IF  NOT EXISTS {0}."carplaces_params" ({1});'.format(schemaName, fields)
             )
             cursor.execute(
-                'CREATE TABLE IF  NOT EXISTS {0}."houses_params" ({1})'.format(schemaName, fields)
+                'CREATE TABLE IF  NOT EXISTS {0}."houses_params" ({1});'.format(schemaName, fields)
             )
             cursor.execute(
-                'CREATE TABLE IF  NOT EXISTS {0}."rooms_params" ({1})'.format(schemaName, fields)
+                'CREATE TABLE IF  NOT EXISTS {0}."rooms_params" ({1});'.format(schemaName, fields)
             )
             cursor.execute(
-                'CREATE TABLE IF  NOT EXISTS {0}."steads_params" ({1})'.format(schemaName, fields)
+                'CREATE TABLE IF  NOT EXISTS {0}."steads_params" ({1});'.format(schemaName, fields)
             )
         else:
             cursor.execute(
-                "CREATE TABLE IF  NOT EXISTS {0}.{1} ({2})".format(schemaName, schema['tableName'], fields)
+                "CREATE TABLE IF  NOT EXISTS {0}.{1} ({2});".format(schemaName, schema['fileName'][3:schema['fileName'].find('_2')], fields)
             )
     conn.commit()
     print('--- Созданы таблицы в БД ---')
