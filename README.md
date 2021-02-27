@@ -50,6 +50,7 @@ XSD схемы и XML файлы должны быть распакованы в
 в котором прописать дату скачанного архива в формате dd.mm.yyyy
 #### 5. Прописать в cron ежедневное выполнение скрипта `updateGAR.py`
 ```crontab -e```
+
 ```mm hh * * * /path/to/python/interpreter /path/to/updateGAR.py```
 
 Скрипт сравнивает дату в файле `currentVersion.txt` с датой новейшего доступного 
