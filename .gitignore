@@ -3,3 +3,7 @@
 Schemas
 *.XML
 *.txt
+config.py
+XML
+XSD
+*.XSD
