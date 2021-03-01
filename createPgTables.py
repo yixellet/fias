@@ -11,9 +11,9 @@ def createPgTables(parsedXSD, conn, cursor, schemaName):
         fields = ''
         for field in schema['fields']:
             if field['type'] == 'character varying':
-                fields = fields + '"{0}" {1} ({2}), '.format(field['name'], field['type'], field['length'])
+                fields = fields + '"{0}" {1} ({2}), '.format(field['name'].lower(), field['type'], field['length'])
             else:
-                fields = fields + '"{0}" {1}, '.format(field['name'], field['type'])
+                fields = fields + '"{0}" {1}, '.format(field['name'].lower(), field['type'])
         fields = fields[:-2]
         c = {'name': 'id'}
         for field in schema['fields']:
