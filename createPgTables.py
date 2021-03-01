@@ -15,16 +15,16 @@ def createPgTables(parsedXSD, conn, cursor, schemaName):
             else:
                 fields = fields + '"{0}" {1}, '.format(field['name'], field['type'])
         fields = fields[:-2]
-        c = {'name': 'ID'}
+        c = {'name': 'id'}
         for field in schema['fields']:
             if c.items() <= field.items():
-                fields = fields + ', PRIMARY KEY ("ID")'
+                fields = fields + ', PRIMARY KEY ("id")'
         if schema['fileName'][3:schema['fileName'].find('_2')] == 'CHANGE_HISTORY':
-            fields = fields + ', PRIMARY KEY ("CHANGEID")'
+            fields = fields + ', PRIMARY KEY ("changeid")'
         elif schema['fileName'][3:schema['fileName'].find('_2')] == 'OBJECT_LEVELS':
-            fields = fields + ', PRIMARY KEY ("LEVEL")'
+            fields = fields + ', PRIMARY KEY ("level")'
         elif schema['fileName'][3:schema['fileName'].find('_2')] == 'REESTR_OBJECTS':
-            fields = fields + ', PRIMARY KEY ("OBJECTID", "CHANGEID")'
+            fields = fields + ', PRIMARY KEY ("objectid", "changeid")'
         if schema['tableName'] == 'PARAMS':
             cursor.execute(
                 'CREATE TABLE IF  NOT EXISTS {0}."addr_obj_params" ({1});'.format(schemaName, fields)
