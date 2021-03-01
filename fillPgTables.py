@@ -10,7 +10,7 @@ def insertIntoDb(XSDdirectory, XMLdirectory, file, item, schema, cursor, conn):
             columns = ''
             values = ''
             for pair in line.items():
-                columns = columns + '"{0}", '.format(pair[0][1:])
+                columns = columns + '"{0}", '.format(pair[0][1:].lower())
                 values = values + '\'{0}\', '.format(str(pair[1]))
             cursor.execute('INSERT INTO {0}.{1} ({2}) VALUES ({3}) ON CONFLICT DO NOTHING;' \
                 .format(schema, item[3:item.find('_20')], columns[:-2], values[:-2]))

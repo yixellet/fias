@@ -11,20 +11,20 @@ def createPgTables(parsedXSD, conn, cursor, schemaName):
         fields = ''
         for field in schema['fields']:
             if field['type'] == 'character varying':
-                fields = fields + '"{0}" {1} ({2}), '.format(field['name'], field['type'], field['length'])
+                fields = fields + '"{0}" {1} ({2}), '.format(field['name'].lower(), field['type'], field['length'])
             else:
-                fields = fields + '"{0}" {1}, '.format(field['name'], field['type'])
+                fields = fields + '"{0}" {1}, '.format(field['name'].lower(), field['type'])
         fields = fields[:-2]
-        c = {'name': 'ID'}
+        c = {'name': 'id'}
         for field in schema['fields']:
             if c.items() <= field.items():
-                fields = fields + ', PRIMARY KEY ("ID")'
+                fields = fields + ', PRIMARY KEY ("id")'
         if schema['fileName'][3:schema['fileName'].find('_2')] == 'CHANGE_HISTORY':
-            fields = fields + ', PRIMARY KEY ("CHANGEID")'
+            fields = fields + ', PRIMARY KEY ("changeid")'
         elif schema['fileName'][3:schema['fileName'].find('_2')] == 'OBJECT_LEVELS':
-            fields = fields + ', PRIMARY KEY ("LEVEL")'
+            fields = fields + ', PRIMARY KEY ("level")'
         elif schema['fileName'][3:schema['fileName'].find('_2')] == 'REESTR_OBJECTS':
-            fields = fields + ', PRIMARY KEY ("OBJECTID", "CHANGEID")'
+            fields = fields + ', PRIMARY KEY ("objectid", "changeid")'
         if schema['tableName'] == 'PARAMS':
             cursor.execute(
                 'CREATE TABLE IF  NOT EXISTS {0}."addr_obj_params" ({1});'.format(schemaName, fields)
@@ -48,5 +48,6 @@ def createPgTables(parsedXSD, conn, cursor, schemaName):
             cursor.execute(
                 "CREATE TABLE IF  NOT EXISTS {0}.{1} ({2});".format(schemaName, schema['fileName'][3:schema['fileName'].find('_2')], fields)
             )
+        print(fields)
     conn.commit()
     print('--- Созданы таблицы в БД ---')

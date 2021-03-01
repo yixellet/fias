@@ -7,7 +7,6 @@ def downloadAndUnzip(url, versionId, directory, region):
     fileName, headers = urllib.request.urlretrieve(
         url, directory + '/' + str(versionId) + '.zip'
     )
-
     gar_zip = zipfile.ZipFile(fileName)
     for file in gar_zip.namelist():
         if file.find('/') != -1:
