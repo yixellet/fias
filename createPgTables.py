@@ -48,5 +48,6 @@ def createPgTables(parsedXSD, conn, cursor, schemaName):
             cursor.execute(
                 "CREATE TABLE IF  NOT EXISTS {0}.{1} ({2});".format(schemaName, schema['fileName'][3:schema['fileName'].find('_2')], fields)
             )
+        print(fields)
     conn.commit()
     print('--- Созданы таблицы в БД ---')
