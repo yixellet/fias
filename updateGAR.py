@@ -29,7 +29,7 @@ if lastVerrsionDate > currentVersionDate:
     currentVersionDateFile.write(lastAccessibleVersion['Date'])
     currentVersionDateFile.close()
     for file in os.listdir(UPDATE_DIRECTORY):
-        if file.find('.txt') != -1:
+        if file.find('.txt') == -1:
             os.remove(UPDATE_DIRECTORY + '/' + file)
 else:
     log.write(str(datetime.now()) + ' --- Обновлений не обнаружено. Текущая версия {0} ---\n'.format(lastAccessibleVersion['VersionId']))
