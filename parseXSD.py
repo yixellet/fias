@@ -36,7 +36,7 @@ def diver(string, dictionary, filename, openTags):
 
         if openTagNameClear == 'attribute':
             tempDict = {}
-            tempDict['name'] = openTagNameWithAttributes[openTagNameWithAttributes.find(' name=')+7:openTagNameWithAttributes.find('"',openTagNameWithAttributes.find(' name=')+8)]
+            tempDict['name'] = openTagNameWithAttributes[openTagNameWithAttributes.find(' name=')+7:openTagNameWithAttributes.find('"',openTagNameWithAttributes.find(' name=')+8)].lower()
             dictionary['fields'].append(tempDict)
         
         if openTagNameClear == 'restriction':
