@@ -46,6 +46,7 @@ XSD схемы и XML файлы должны быть распакованы в
 * `XML_DIRECTORY` - папка с XML таблицами
 * `UPDATE_DIRECTORY` - папка, куда скрипт будет скачивать обновления
 * `REGION_CODE` - код региона
+* `UPDATE_SERVICE_URL = http://fias.nalog.ru/WebServices/Public/GetAllDownloadFileInfo` - URL службы получения обновлений
 
 #### 4. Запустить `index.py` и ждать
 
