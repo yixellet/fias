@@ -4,9 +4,8 @@ import os
 
 def downloadAndUnzip(url, versionId, directory, region):
 
-    fileName, headers = urllib.request.urlretrieve(
-        url, directory + '/' + str(versionId) + '.zip'
-    )
+    fileName = urllib.request.urlretrieve(
+        url, os.path.join(directory, str(versionId) + '.zip'))[0]
     gar_zip = zipfile.ZipFile(fileName)
     for file in gar_zip.namelist():
         if file.find('/') != -1:
@@ -14,6 +13,6 @@ def downloadAndUnzip(url, versionId, directory, region):
                 gar_zip.extract(file, directory)
         else:
             gar_zip.extract(file, directory)
-    os.remove(directory + '/' + str(versionId) + '.zip')
+    os.remove(os.path.join(directory, str(versionId) + '.zip'))
     print('--- Обновление загружено в директорию {0}. \
         Текущая версия справочника {1}. ---'.format(directory, str(versionId)))

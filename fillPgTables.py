@@ -1,4 +1,5 @@
 import os
+
 import xmlschema
 
 def insertIntoDb(XSDdirectory, XMLdirectory, file, item, schema, cursor, conn):
@@ -31,5 +32,5 @@ def fillPgTables(XMLdirectory, XSDdirectory, cursor, conn, schema, regionCode):
                     if file.find('AS_PARAM_2') != -1:
                         insertIntoDb(XSDdirectory, XMLdirectory, file, item, schema, cursor, conn)
         elif item == regionCode:
-            fillPgTables(XMLdirectory + '/' + item, XSDdirectory, cursor, conn, schema, regionCode)
+            fillPgTables(os.path.join(XMLdirectory, item), XSDdirectory, cursor, conn, schema, regionCode)
     print('--- Все таблицы заполнены ---')

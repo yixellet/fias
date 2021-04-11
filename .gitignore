@@ -8,3 +8,4 @@ XML
 XSD
 *.XSD
 __pycache__
+.vscode
