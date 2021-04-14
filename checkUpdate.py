@@ -19,7 +19,7 @@ def checkUpdate(updDir, logFile):
 
     if lastVerrsionDate > currentVersionDate:
         fileSize = urlopen(lastAccessibleVersion['GarXMLURL']).headers['Content-Length']
-        if fileSize < 1073741824:
+        if int(fileSize) < 1073741824:
             return lastAccessibleVersion
         else:
             logFile.write(str(datetime.now()) + ' --- ВНИМАНИЕ!!! \

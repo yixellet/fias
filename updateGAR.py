@@ -23,9 +23,9 @@ if checkUpd != 'No Updates':
         UPDATE_DIRECTORY,
         REGION_CODE)
     (connection, cursor) = connectToDB(
-        DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, DB_SCHEMA)
+        DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME)
     fillPgTables(UPDATE_DIRECTORY, XSD_DIRECTORY, cursor, connection, DB_SCHEMA, REGION_CODE)
-    updateIndexes(cursor, connection, DB_SCHEMA)
+    #updateIndexes(cursor, connection, DB_SCHEMA)
     log.write(str(datetime.now()) + ' --- Обновленo. Текущая версия {0} ---\n'.format(checkUpd['VersionId']))
     log.close()
     currentVersionDateFile = open(os.path.join(UPDATE_DIRECTORY, 'currentVersion.txt'), 'w')
