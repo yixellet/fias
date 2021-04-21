@@ -1,4 +1,5 @@
 import os
+import shutil
 from datetime import datetime
 
 from config import DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, \
@@ -17,11 +18,12 @@ log = open(os.path.join(UPDATE_DIRECTORY, 'log.txt'), 'a')
 checkUpd = checkUpdate(UPDATE_DIRECTORY, log)
 
 if checkUpd != 'No Updates':
+    """
     downloadAndUnzip(
         checkUpd['GarXMLURL'], 
         checkUpd['VersionId'], 
         UPDATE_DIRECTORY,
-        REGION_CODE)
+        REGION_CODE)"""
     (connection, cursor) = connectToDB(
         DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME)
     fillPgTables(UPDATE_DIRECTORY, XSD_DIRECTORY, cursor, connection, DB_SCHEMA, REGION_CODE)
@@ -33,4 +35,7 @@ if checkUpd != 'No Updates':
     currentVersionDateFile.close()
     for file in os.listdir(UPDATE_DIRECTORY):
         if file.find('.txt') == -1:
-            os.remove(os.path.join(UPDATE_DIRECTORY, file))
+            if file == '30':
+                shutil.rmtree(os.path.join(UPDATE_DIRECTORY, file))
+            else:
+                os.remove(os.path.join(UPDATE_DIRECTORY, file))
