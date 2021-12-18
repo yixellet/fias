@@ -79,6 +79,9 @@ def parseXsd(directory):
         openTags = []
         diver(string, schemadict, xsd, openTags)
         for field in schemadict['fields']:
+            if field['name'] == 'path':
+                field['type'] = 'character varying'
+                field['length'] = 254
             if field['type'] == 'int':
                 field['type'] = 'integer'
             if field['type'] == 'long':
