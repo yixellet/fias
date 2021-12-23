@@ -1,9 +1,22 @@
 import os
 from lxml import etree
 
-from findXSD import findXSD
+def findXSD(dir_path: str, namepart: str) -> str:
+    """
+    Находит файл в директории и возвращает его полный путь
+    """
+    
+    if namepart == 'AS_ADDHOUSE_TYPES':
+        needle = 'AS_HOUSE_TYPES_2'
+    elif namepart.find('_PARAMS') != -1:
+        needle = 'AS_PARAM_2'
+    else:
+        needle = namepart + '_2'
 
-from config import XSD_DIRECTORY, XML_DIRECTORY
+    for file in os.listdir(dir_path):
+        if file[:len(needle)] == needle:
+            return os.path.join(dir_path, file)
+
 
 def validate(xml_path: str, xsd_path: str) -> bool:
     xmlschema_doc = etree.parse(xsd_path)
@@ -18,12 +31,20 @@ def validate(xml_path: str, xsd_path: str) -> bool:
     else:
         print(xml_name + '   ---   Not valid! :(')
 
-    return result
+    return {'File': xml_name, 'IsValid': result}
 
-for file in os.listdir(XML_DIRECTORY):
-    if file.find('.XML') != -1:
-        validate(os.path.join(XML_DIRECTORY, file), findXSD(XSD_DIRECTORY, file.split('_2')[0]))
-    else:
-        path = os.path.join(XML_DIRECTORY, file)
-        for ifile in os.listdir(path):
-            validate(os.path.join(path, ifile), findXSD(XSD_DIRECTORY, ifile.split('_2')[0]))
+
+def batchValidation(xml_dir, xsd_dir, reg_code):
+    """
+    Пакетная валидация XML файлов.
+    """
+
+    result = []
+    for file in os.listdir(xml_dir):
+        if file.find('.XML') != -1:
+            result.append(validate(os.path.join(xml_dir, file), findXSD(xsd_dir, file.split('_2')[0])))
+        elif file == reg_code:
+            path = os.path.join(xml_dir, file)
+            for ifile in os.listdir(path):
+                result.append(validate(os.path.join(path, ifile), findXSD(xsd_dir, ifile.split('_2')[0])))
+    return result
