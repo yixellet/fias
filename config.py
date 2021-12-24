@@ -1,0 +1,11 @@
+DB_HOST = '172.17.13.6'
+DB_PORT = 5432
+DB_USER = 'postgres'
+DB_PASSWORD = '07071907'
+DB_NAME = 'geodata'
+DB_SCHEMA ='gar'
+XSD_DIRECTORY = 'D:\\dev\\GAR\\XSD'
+XML_DIRECTORY = 'D:\\dev\\GAR\\XML'
+UPDATE_DIRECTORY = 'D:\\dev\\GAR\\update'
+REGION_CODE = '30'
+UPDATE_SERVICE_URL = 'http://fias.nalog.ru/WebServices/Public/GetAllDownloadFileInfo'

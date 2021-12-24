@@ -5,7 +5,6 @@ from parseXSD import parseXsd
 from createPgTables import createPgTables
 from fillPgTables import fillPgTables
 from createIndexes import createIndexes
-
 (connection, cursor) = connectToDB(
   DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME)
 
