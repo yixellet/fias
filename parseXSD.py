@@ -4,7 +4,6 @@ import re
 def extractContent(xsd):
     """
     Извлекает полезное содержимое из XSD файла
-
     Отбрасывает преамбулу, убирает все переносы строк и табуляции
     """
     string = xsd.replace('\n','').replace('\t','')
@@ -71,7 +70,7 @@ def parseXsd(directory):
     """
     parsedXSD = []
     for xsd in os.listdir(directory):
-        schema = open(directory + '/' + xsd, 'r', encoding='utf_8_sig')
+        schema = open(os.path.join(directory, xsd), 'r', encoding='utf_8_sig')
         schemadict = {}
         schemadict['fileName'] = xsd
         schemastr = schema.read()
@@ -80,6 +79,9 @@ def parseXsd(directory):
         openTags = []
         diver(string, schemadict, xsd, openTags)
         for field in schemadict['fields']:
+            if field['name'] == 'path':
+                field['type'] = 'character varying'
+                field['length'] = 254
             if field['type'] == 'int':
                 field['type'] = 'integer'
             if field['type'] == 'long':

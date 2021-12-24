@@ -1,10 +1,11 @@
 import os
+
 import xmlschema
 
 def insertIntoDb(XSDdirectory, XMLdirectory, file, item, schema, cursor, conn):
     print('----- Таблица {0} заполняется... -----'.format(item[3:item.find('_20')]))
-    xs = xmlschema.XMLSchema('{0}/{1}'.format(XSDdirectory, file))
-    data = xs.to_dict('{0}/{1}'.format(XMLdirectory, item))
+    xs = xmlschema.XMLSchema(os.path.join(XSDdirectory, file))
+    data = xs.to_dict(source=os.path.join(XMLdirectory, item), validation='skip')
     if data != None:
         for line in data[list(data.keys())[0]]:
             columns = ''
@@ -31,5 +32,5 @@ def fillPgTables(XMLdirectory, XSDdirectory, cursor, conn, schema, regionCode):
                     if file.find('AS_PARAM_2') != -1:
                         insertIntoDb(XSDdirectory, XMLdirectory, file, item, schema, cursor, conn)
         elif item == regionCode:
-            fillPgTables(XMLdirectory + '/' + item, XSDdirectory, cursor, conn, schema, regionCode)
+            fillPgTables(os.path.join(XMLdirectory, item), XSDdirectory, cursor, conn, schema, regionCode)
     print('--- Все таблицы заполнены ---')
