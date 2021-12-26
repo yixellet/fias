@@ -5,6 +5,8 @@ from parseXSD import parseXsd
 from createPgTables import createPgTables
 from fillPgTables import fillPgTables
 from createIndexes import createIndexes
+from validateXML import batchValidation
+
 (connection, cursor) = connectToDB(
   DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME)
 
@@ -14,10 +16,15 @@ print('--- Создана схема {schema} ---'.format(schema=DB_SCHEMA))
 
 parsedXSD = parseXsd(XSD_DIRECTORY)
 
+validation = batchValidation(XML_DIRECTORY, XSD_DIRECTORY, REGION_CODE)
+for file in validation:
+    if file['IsValid'] is False:
+        print('\t' + file['File'] + '\t' + str(file['IsValid']))
+
 createPgTables(parsedXSD, connection, cursor, DB_SCHEMA)
 
 fillPgTables(
-  XML_DIRECTORY, XSD_DIRECTORY, cursor, connection, DB_SCHEMA, REGION_CODE)
+  XML_DIRECTORY, cursor, connection, DB_SCHEMA, REGION_CODE)
 
 createIndexes(parsedXSD, connection, cursor, DB_SCHEMA)
 
