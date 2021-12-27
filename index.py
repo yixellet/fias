@@ -15,12 +15,12 @@ cursor.execute("CREATE SCHEMA IF NOT EXISTS {schema};" \
 print('--- Создана схема {schema} ---'.format(schema=DB_SCHEMA))
 
 parsedXSD = parseXsd(XSD_DIRECTORY)
-
+"""
 validation = batchValidation(XML_DIRECTORY, XSD_DIRECTORY, REGION_CODE)
 for file in validation:
     if file['IsValid'] is False:
         print('\t' + file['File'] + '\t' + str(file['IsValid']))
-
+"""
 createPgTables(parsedXSD, connection, cursor, DB_SCHEMA)
 
 fillPgTables(

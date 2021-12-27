@@ -29,7 +29,7 @@ if len(availableVersions) != 0:
     
     print('Необходимо выполнить ' + str(len(availableVersions)) + ' процедур обновления справочника')
     input('Enter')
-    for version in availableVersions:
+    for version in availableVersions[::-1]:
         print('Обновление от ' + version['Date'])
         log.write('Обновление от ' + version['Date'] + '\n')
         if version['Size'] > 1073741824:
@@ -61,7 +61,6 @@ if len(availableVersions) != 0:
             updateIndexes(cursor, connection, DB_SCHEMA)
             connection.close()
             log.write(' --- Обновленo. Текущая версия {0} ---\n'.format(version['VersionId']))
-            log.close()
             currentVersionDateFile = open(os.path.join(UPDATE_DIRECTORY, 'currentVersion.txt'), 'w')
             currentVersionDateFile.write(version['Date'])
             currentVersionDateFile.close()
@@ -71,3 +70,5 @@ if len(availableVersions) != 0:
                         shutil.rmtree(os.path.join(UPDATE_DIRECTORY, file))
                     else:
                         os.remove(os.path.join(UPDATE_DIRECTORY, file))
+    
+    log.close()
