@@ -33,6 +33,7 @@ def insertIntoDb(XSDdirectory, XMLdirectory, file, item, schema, cursor, conn, m
         print('----- НЕТ ДАННЫХ -----')
 
 def fillPgTables(XMLdirectory, XSDdirectory, cursor, conn, schema, regionCode, mode='prod'):
+    print(os.listdir(XMLdirectory))
     for item in os.listdir(XMLdirectory):
         if item.find('.XML') != -1:
             if item.find('PARAMS') == -1:
