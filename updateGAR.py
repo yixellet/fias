@@ -28,6 +28,7 @@ if len(availableVersions) != 0:
         log.write('\tДата: ' + version['Date'] + ', размер файла: ' + str(round(version['Size']/1024/1024)) + ' МБ' + '\n')
     
     print('Необходимо выполнить ' + str(len(availableVersions)) + ' процедур обновления справочника')
+    input('Enter')
     for version in availableVersions:
         print('Обновление от ' + version['Date'])
         log.write('Обновление от ' + version['Date'] + '\n')
@@ -56,7 +57,7 @@ if len(availableVersions) != 0:
             
             (connection, cursor) = connectToDB(
                 DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME)
-            fillPgTables(UPDATE_DIRECTORY, XSD_DIRECTORY, cursor, connection, DB_SCHEMA, REGION_CODE)
+            fillPgTables(UPDATE_DIRECTORY, cursor, connection, DB_SCHEMA, REGION_CODE)
             updateIndexes(cursor, connection, DB_SCHEMA)
             connection.close()
             log.write(' --- Обновленo. Текущая версия {0} ---\n'.format(version['VersionId']))
