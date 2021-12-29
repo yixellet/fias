@@ -28,7 +28,6 @@ if len(availableVersions) != 0:
         log.write('\tДата: ' + version['Date'] + ', размер файла: ' + str(round(version['Size']/1024/1024)) + ' МБ' + '\n')
     
     print('Необходимо выполнить ' + str(len(availableVersions)) + ' процедур обновления справочника')
-    input('Enter')
     for version in availableVersions[::-1]:
         print('Обновление от ' + version['Date'])
         log.write('Обновление от ' + version['Date'] + '\n')
