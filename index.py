@@ -4,6 +4,7 @@ from connection import connectToDB
 from parseXSD import parseXsd
 from createPgTables import createPgTables
 from fillPgTables import fillPgTables
+from createFunctions import createFunctions
 from createIndexes import createIndexes
 from validateXML import batchValidation
 
@@ -25,6 +26,8 @@ createPgTables(parsedXSD, connection, cursor, DB_SCHEMA)
 
 fillPgTables(
   XML_DIRECTORY, cursor, connection, DB_SCHEMA, REGION_CODE)
+
+createFunctions(connection, cursor, DB_SCHEMA)
 
 createIndexes(parsedXSD, connection, cursor, DB_SCHEMA)
 

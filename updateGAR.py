@@ -41,6 +41,7 @@ if len(availableVersions) != 0:
             log.close()
         else:
             print('\tЗагрузка...')
+            
             downloadAndUnzip(
                 version['GarXMLURL'], 
                 version['VersionId'], 
@@ -69,5 +70,8 @@ if len(availableVersions) != 0:
                         shutil.rmtree(os.path.join(UPDATE_DIRECTORY, file))
                     else:
                         os.remove(os.path.join(UPDATE_DIRECTORY, file))
-    
-    log.close()
+else:
+    print(str(datetime.now()) + '\nОбновлений нет')
+    log.write(str(datetime.now()) + '\nОбновлений нет')
+
+log.close()
