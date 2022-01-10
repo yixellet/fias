@@ -30,7 +30,7 @@ def createFunctions(conn, cursor, schemaName):
     cursor.execute(
         """CREATE OR REPLACE FUNCTION {0}.genealogy_adm(
             objectid integer)
-            RETURNS TABLE(objectid integer, name character varying, typename character varying, level character varying) 
+            RETURNS TABLE(objectid bigint, name character varying, typename character varying, level character varying) 
             LANGUAGE 'sql'
             COST 100
             VOLATILE PARALLEL UNSAFE
@@ -66,7 +66,7 @@ def createFunctions(conn, cursor, schemaName):
 
             CREATE OR REPLACE FUNCTION {0}.genealogy_mun(
                 objectid integer)
-                RETURNS TABLE(objectid integer, name character varying, typename character varying, level character varying) 
+                RETURNS TABLE(objectid bigint, name character varying, typename character varying, level character varying) 
                 LANGUAGE 'sql'
                 COST 100
                 VOLATILE PARALLEL UNSAFE
@@ -102,7 +102,7 @@ def createFunctions(conn, cursor, schemaName):
 
             CREATE OR REPLACE FUNCTION {0}.getchildren_adm(
                 objectid integer)
-                RETURNS TABLE(objectid integer, name character varying, typename character varying, level character varying, children bigint) 
+                RETURNS TABLE(objectid bigint, name character varying, typename character varying, level integer, children bigint) 
                 LANGUAGE 'sql'
                 COST 100
                 VOLATILE PARALLEL UNSAFE
@@ -163,7 +163,7 @@ def createFunctions(conn, cursor, schemaName):
             
             CREATE OR REPLACE FUNCTION {0}.getchildren_mun(
                 objectid integer)
-                RETURNS TABLE(objectid integer, name character varying, typename character varying, level character varying, children bigint) 
+                RETURNS TABLE(objectid bigint, name character varying, typename character varying, level integer, children bigint) 
                 LANGUAGE 'sql'
                 COST 100
                 VOLATILE PARALLEL UNSAFE
@@ -223,7 +223,7 @@ def createFunctions(conn, cursor, schemaName):
             
             CREATE OR REPLACE FUNCTION {0}.gethousechildren(
                 objectid integer)
-                RETURNS TABLE(objectid integer, name character varying, typename character varying, level character varying, children bigint) 
+                RETURNS TABLE(objectid bigint, name character varying, typename character varying, level integer, children bigint) 
                 LANGUAGE 'sql'
                 COST 100
                 VOLATILE PARALLEL UNSAFE
@@ -259,7 +259,7 @@ def createFunctions(conn, cursor, schemaName):
             
             CREATE OR REPLACE FUNCTION {0}.getrooms(
                 objectid integer)
-                RETURNS TABLE(objectid integer, name character varying, typename character varying, level character varying, children bigint) 
+                RETURNS TABLE(objectid bigint, name character varying, typename character varying, level integer, children bigint) 
                 LANGUAGE 'sql'
                 COST 100
                 VOLATILE PARALLEL UNSAFE
