@@ -66,7 +66,7 @@ if len(availableVersions) != 0:
             currentVersionDateFile.close()
             for file in os.listdir(UPDATE_DIRECTORY):
                 if file.find('.txt') == -1:
-                    if file == '30':
+                    if file == REGION_CODE:
                         shutil.rmtree(os.path.join(UPDATE_DIRECTORY, file))
                     else:
                         os.remove(os.path.join(UPDATE_DIRECTORY, file))
